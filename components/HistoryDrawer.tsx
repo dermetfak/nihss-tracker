@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { NIHSSAssessment, getSeverityLabel, NIHSS_ITEMS } from '@/lib/nihss';
+import { NIHSSAssessment, NIHSS_ITEMS } from '@/lib/nihss';
 import { deleteAssessment } from '@/lib/storage';
 
 interface HistoryDrawerProps {
@@ -47,16 +47,6 @@ export default function HistoryDrawer({
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const getSeverityColor = (severity: NIHSSAssessment['severity']) => {
-    const colors = {
-      minor: 'bg-green-100 text-green-700',
-      mild: 'bg-yellow-100 text-yellow-700',
-      moderate: 'bg-orange-100 text-orange-700',
-      severe: 'bg-red-100 text-red-700',
-    };
-    return colors[severity];
   };
 
   return (
@@ -116,9 +106,6 @@ export default function HistoryDrawer({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-gray-900">{assessment.totalScore}</span>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSeverityColor(assessment.severity)}`}>
-                          {getSeverityLabel(assessment.severity)}
-                        </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">
                         {formatDate(assessment.timestamp)} at {formatTime(assessment.timestamp)}

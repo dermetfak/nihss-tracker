@@ -62,7 +62,6 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
           <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Review Assessment</p>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-5xl font-bold">{currentScore}</span>
-            <span className="text-blue-200">/ 42</span>
           </div>
           <p className="text-blue-100 text-sm mt-2">{answeredCount} of {NIHSS_ITEMS.length} items scored</p>
         </div>
@@ -145,7 +144,6 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
         <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Total Score</p>
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-5xl font-bold">{currentScore}</span>
-          <span className="text-blue-200">/ 42</span>
         </div>
         <div className="mt-4 pt-4 border-t border-blue-500/30">
           <div className="flex items-center justify-between text-sm">
@@ -163,7 +161,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
 
       {/* Items Grid - Free Order Selection */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <p className="text-sm font-medium text-gray-500 mb-3 text-center">Tap any item to score in your preferred order</p>
+        <p className="text-sm font-medium text-gray-500 mb-3 text-center">Tap any item to score</p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {NIHSS_ITEMS.map((item, index) => {
             const score = items[item.id];
@@ -173,7 +171,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
               <button
                 key={item.id}
                 onClick={() => setActiveItem(item.id)}
-                className={`p-3 rounded-xl text-left transition-all border-2 ${
+                className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
                   activeItem === item.id
                     ? 'border-blue-500 bg-blue-50'
                     : isScored
@@ -181,17 +179,12 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
                     : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-bold ${isScored ? 'text-green-700' : 'text-gray-400'}`}>
-                    {index + 1}
-                  </span>
-                  {isScored && (
-                    <span className="text-lg font-bold text-green-700">{score}</span>
-                  )}
-                </div>
-                <p className={`text-xs leading-tight ${isScored ? 'text-green-800' : 'text-gray-600'}`}>
-                  {item.name.split(' ').slice(0, 3).join(' ')}
-                </p>
+                <span className={`text-lg font-bold ${isScored ? 'text-green-700' : 'text-gray-400'}`}>
+                  {index + 1}
+                </span>
+                {isScored && (
+                  <span className="text-2xl font-bold text-green-700">{score}</span>
+                )}
               </button>
             );
           })}
