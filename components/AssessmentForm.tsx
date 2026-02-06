@@ -166,16 +166,16 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
         </div>
       </div>
 
-      {/* Stepper - Compact Grid */}
-      <div className="bg-white rounded-xl border border-gray-200 p-3">
-        <div className="grid grid-cols-15 gap-1">
+      {/* Stepper - Three rows of 5 */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="grid grid-cols-5 gap-2">
           {NIHSS_ITEMS.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentStep(index)}
-              className={`aspect-square rounded-md text-xs font-semibold transition-all ${
+              className={`h-10 rounded-lg text-sm font-semibold transition-all ${
                 index === currentStep
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : index < currentStep || items[NIHSS_ITEMS[index].id] >= 0
                   ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-400'
