@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { NIHSS_ITEMS, NIHSSAssessment, calculateTotal, getSeverity, getSeverityLabel } from '@/lib/nihss';
+import { NIHSS_ITEMS, NIHSSAssessment, calculateTotal, getSeverity } from '@/lib/nihss';
 import { saveAssessment } from '@/lib/storage';
 
 interface AssessmentFormProps {
@@ -11,16 +11,13 @@ interface AssessmentFormProps {
 export default function AssessmentForm({ onSave }: AssessmentFormProps) {
   const [items, setItems] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
-  const [currentStep, setCurrentStep] = useState(0);
+  const [activeItem, setActiveItem] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
 
   const handleScoreChange = useCallback((itemId: string, value: number) => {
     setItems(prev => ({ ...prev, [itemId]: value }));
-    // Auto-advance to next item after selection
-    if (currentStep < NIHSS_ITEMS.length - 1) {
-      setTimeout(() => setCurrentStep(prev => prev + 1), 200);
-    }
-  }, [currentStep]);
+    setActiveItem(null); // Close after scoring
+  }, []);
 
   const handleSave = useCallback(() => {
     const totalScore = calculateTotal(items);
@@ -41,7 +38,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
     // Reset form
     setItems({});
     setNotes('');
-    setCurrentStep(0);
+    setActiveItem(null);
     setShowReview(false);
   }, [items, notes, onSave]);
 
@@ -49,15 +46,13 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
     if (confirm('Clear all scores?')) {
       setItems({});
       setNotes('');
-      setCurrentStep(0);
+      setActiveItem(null);
       setShowReview(false);
     }
   }, []);
 
   const currentScore = calculateTotal(items);
   const answeredCount = Object.keys(items).length;
-  const currentItem = NIHSS_ITEMS[currentStep];
-  const currentValue = items[currentItem?.id] ?? -1;
 
   if (showReview) {
     return (
@@ -78,7 +73,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
             <h3 className="font-semibold text-gray-900">Assessment Summary</h3>
           </div>
           <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-            {NIHSS_ITEMS.map((item, index) => {
+            {NIHSS_ITEMS.map((item) => {
               const score = items[item.id] ?? -1;
               const option = item.options.find(o => o.value === score);
               
@@ -97,7 +92,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
                   </div>
                   <button
                     onClick={() => {
-                      setCurrentStep(index);
+                      setActiveItem(item.id);
                       setShowReview(false);
                     }}
                     className="text-blue-600 text-sm font-medium hover:underline"
@@ -166,104 +161,120 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
         </div>
       </div>
 
-      {/* Stepper - Three rows of 5 */}
+      {/* Items Grid - Free Order Selection */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="grid grid-cols-5 gap-2">
-          {NIHSS_ITEMS.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentStep(index)}
-              className={`h-10 rounded-lg text-sm font-semibold transition-all ${
-                index === currentStep
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : index < currentStep || items[NIHSS_ITEMS[index].id] >= 0
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-400'
-              }`}
-            >
-              {index + 1}
-            </button>
-          ))}
+        <p className="text-sm font-medium text-gray-500 mb-3 text-center">Tap any item to score in your preferred order</p>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {NIHSS_ITEMS.map((item, index) => {
+            const score = items[item.id];
+            const isScored = score !== undefined;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveItem(item.id)}
+                className={`p-3 rounded-xl text-left transition-all border-2 ${
+                  activeItem === item.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : isScored
+                    ? 'border-green-300 bg-green-50'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-bold ${isScored ? 'text-green-700' : 'text-gray-400'}`}>
+                    {index + 1}
+                  </span>
+                  {isScored && (
+                    <span className="text-lg font-bold text-green-700">{score}</span>
+                  )}
+                </div>
+                <p className={`text-xs leading-tight ${isScored ? 'text-green-800' : 'text-gray-600'}`}>
+                  {item.name.split(' ').slice(0, 3).join(' ')}
+                </p>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Current Item Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <span className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">
-              {currentStep + 1}
-            </span>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">{currentItem.name}</h3>
-              <p className="text-sm text-gray-500">{currentItem.description}</p>
-            </div>
+      {/* Scoring Modal for Active Item */}
+      {activeItem && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+            {(() => {
+              const item = NIHSS_ITEMS.find(i => i.id === activeItem)!;
+              const currentValue = items[item.id] ?? -1;
+              
+              return (
+                <>
+                  {/* Modal Header */}
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-sm text-gray-500">Item {NIHSS_ITEMS.findIndex(i => i.id === item.id) + 1} of {NIHSS_ITEMS.length}</span>
+                      <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
+                      <p className="text-sm text-gray-500">{item.description}</p>
+                    </div>
+                    <button 
+                      onClick={() => setActiveItem(null)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Options */}
+                  <div className="p-6 space-y-3 overflow-y-auto max-h-[50vh]">
+                    {item.options.map((option) => (
+                      <label
+                        key={option.value}
+                        className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          currentValue === option.value
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                          currentValue === option.value
+                            ? 'border-blue-500 bg-blue-500 text-white'
+                            : 'border-gray-300'
+                        }`}>
+                          {currentValue === option.value && (
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1" onClick={() => handleScoreChange(item.id, option.value)}>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-gray-900">{option.value}</span>
+                            <span className="font-semibold text-gray-700">{option.label}</span>
+                          </div>
+                          {option.description && (
+                            <p className="text-sm text-gray-500 mt-1">{option.description}</p>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+                    <button
+                      onClick={() => setActiveItem(null)}
+                      className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
-
-        <div className="p-6 space-y-3">
-          {currentItem.options.map((option) => (
-            <label
-              key={option.value}
-              className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                currentValue === option.value
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                currentValue === option.value
-                  ? 'border-blue-500 bg-blue-500 text-white'
-                  : 'border-gray-300'
-              }`}>
-                {currentValue === option.value && (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </div>
-              <div className="flex-1" onClick={() => handleScoreChange(currentItem.id, option.value)}>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-gray-900">{option.value}</span>
-                  <span className="font-semibold text-gray-700">{option.label}</span>
-                </div>
-                {option.description && (
-                  <p className="text-sm text-gray-500 mt-1">{option.description}</p>
-                )}
-              </div>
-            </label>
-          ))}
-        </div>
-
-        {/* Navigation */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-          <button
-            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-            disabled={currentStep === 0}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 font-medium disabled:text-gray-400 hover:bg-gray-200 rounded-lg transition-all disabled:hover:bg-transparent"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Previous
-          </button>
-
-          <span className="text-sm text-gray-500 font-medium">
-            {currentStep + 1} of {NIHSS_ITEMS.length}
-          </span>
-
-          <button
-            onClick={() => setCurrentStep(prev => Math.min(NIHSS_ITEMS.length - 1, prev + 1))}
-            disabled={currentStep === NIHSS_ITEMS.length - 1}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 font-medium disabled:text-gray-400 hover:bg-gray-200 rounded-lg transition-all disabled:hover:bg-transparent"
-          >
-            Next
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3">
