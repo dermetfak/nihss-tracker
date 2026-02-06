@@ -47,7 +47,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
 
   const currentScore = calculateTotal(items);
   const answeredCount = Object.keys(items).length;
-  const totalItems = NIHSS_ITEM.length;
+  const totalItems = NIHSS_ITEMS.length;
 
   return (
     <div className="space-y-6">
