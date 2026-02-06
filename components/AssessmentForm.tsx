@@ -166,23 +166,25 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
         </div>
       </div>
 
-      {/* Stepper */}
-      <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-2 px-2">
-        {NIHSS_ITEMS.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentStep(index)}
-            className={`flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-              index === currentStep
-                ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-                : index < currentStep || items[NIHSS_ITEMS[index].id] >= 0
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-200 text-gray-500'
-            }`}
-          >
-            {index + 1}
-          </button>
-        ))}
+      {/* Stepper - Compact Grid */}
+      <div className="bg-white rounded-xl border border-gray-200 p-3">
+        <div className="grid grid-cols-15 gap-1">
+          {NIHSS_ITEMS.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentStep(index)}
+              className={`aspect-square rounded-md text-xs font-semibold transition-all ${
+                index === currentStep
+                  ? 'bg-blue-600 text-white'
+                  : index < currentStep || items[NIHSS_ITEMS[index].id] >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Current Item Card */}
