@@ -8,6 +8,25 @@ interface AssessmentFormProps {
   onSave: (assessment: NIHSSAssessment) => void;
 }
 
+// Short names for grid display
+const SHORT_NAMES: Record<string, string> = {
+  'loc': 'Consciousness',
+  'locQuestions': 'LOC Qs',
+  'locCommands': 'LOC Cmds',
+  'gaze': 'Gaze',
+  'visual': 'Visual',
+  'facial': 'Face',
+  'motorArmLeft': 'Arm L',
+  'motorArmRight': 'Arm R',
+  'motorLegLeft': 'Leg L',
+  'motorLegRight': 'Leg R',
+  'ataxia': 'Ataxia',
+  'sensory': 'Sensory',
+  'language': 'Language',
+  'dysarthria': 'Speech',
+  'extinction': 'Neglect',
+};
+
 export default function AssessmentForm({ onSave }: AssessmentFormProps) {
   const [items, setItems] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
@@ -16,7 +35,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
 
   const handleScoreChange = useCallback((itemId: string, value: number) => {
     setItems(prev => ({ ...prev, [itemId]: value }));
-    setActiveItem(null); // Close after scoring
+    setActiveItem(null);
   }, []);
 
   const handleSave = useCallback(() => {
@@ -35,7 +54,6 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
     saveAssessment(assessment);
     onSave(assessment);
     
-    // Reset form
     setItems({});
     setNotes('');
     setActiveItem(null);
@@ -57,13 +75,13 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
   if (showReview) {
     return (
       <div className="space-y-6">
-        {/* Review Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg">
-          <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Review Assessment</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-5xl font-bold">{currentScore}</span>
+        {/* Compact Review Header */}
+        <div className="bg-blue-600 text-white rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-blue-100 text-xs uppercase tracking-wide">Review</p>
+            <span className="text-3xl font-bold">{currentScore}</span>
           </div>
-          <p className="text-blue-100 text-sm mt-2">{answeredCount} of {NIHSS_ITEMS.length} items scored</p>
+          <p className="text-blue-100 text-sm">{answeredCount} of {NIHSS_ITEMS.length} scored</p>
         </div>
 
         {/* Review List */}
@@ -138,27 +156,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Score Summary */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg">
-        <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Total Score</p>
-        <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-5xl font-bold">{currentScore}</span>
-        </div>
-        <div className="mt-4 pt-4 border-t border-blue-500/30">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-blue-100">{answeredCount} of {NIHSS_ITEMS.length} items scored</span>
-            <span className="text-blue-200">{Math.round((answeredCount / NIHSS_ITEMS.length) * 100)}% complete</span>
-          </div>
-          <div className="mt-2 bg-blue-900/30 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-white/90 h-full transition-all duration-500"
-              style={{ width: `${(answeredCount / NIHSS_ITEMS.length) * 100}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Items Grid - Free Order Selection */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <p className="text-sm font-medium text-gray-500 mb-3 text-center">Tap any item to score</p>
@@ -171,7 +169,7 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
               <button
                 key={item.id}
                 onClick={() => setActiveItem(item.id)}
-                className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                className={`p-3 rounded-xl text-left transition-all border-2 min-h-[80px] flex flex-col ${
                   activeItem === item.id
                     ? 'border-blue-500 bg-blue-50'
                     : isScored
@@ -179,12 +177,17 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
                     : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
                 }`}
               >
-                <span className={`text-lg font-bold ${isScored ? 'text-green-700' : 'text-gray-400'}`}>
-                  {index + 1}
-                </span>
-                {isScored && (
-                  <span className="text-2xl font-bold text-green-700">{score}</span>
-                )}
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-bold ${isScored ? 'text-green-700' : 'text-gray-400'}`}>
+                    {index + 1}
+                  </span>
+                  {isScored && (
+                    <span className="text-lg font-bold text-green-700">{score}</span>
+                  )}
+                </div>
+                <p className={`text-xs leading-tight mt-auto ${isScored ? 'text-green-800' : 'text-gray-600'}`}>
+                  {SHORT_NAMES[item.id]}
+                </p>
               </button>
             );
           })}
@@ -269,17 +272,21 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-3">
+      {/* Actions with Score */}
+      <div className="flex items-center gap-3">
         <button
           onClick={() => setShowReview(true)}
           className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
         >
           Review & Save
         </button>
+        <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 text-center min-w-[80px]">
+          <p className="text-xs text-gray-500 uppercase">Score</p>
+          <p className="text-2xl font-bold text-gray-900">{currentScore}</p>
+        </div>
         <button
           onClick={handleReset}
-          className="px-6 py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold hover:border-gray-300 hover:bg-gray-50 transition-all"
+          className="px-4 py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold hover:border-gray-300 hover:bg-gray-50 transition-all"
         >
           Reset
         </button>
