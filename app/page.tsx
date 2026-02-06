@@ -9,6 +9,7 @@ import { getAssessments } from '@/lib/storage';
 export default function Home() {
   const [assessments, setAssessments] = useState<NIHSSAssessment[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [lastSaved, setLastSaved] = useState<NIHSSAssessment | null>(null);
 
   const loadAssessments = useCallback(() => {
@@ -49,20 +50,31 @@ export default function Home() {
             </div>
           </div>
           
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="hidden sm:inline">History</span>
-            {assessments.length > 0 && (
-              <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                {assessments.length}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowInfo(true)}
+              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="About NIHSS"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="hidden sm:inline">History</span>
+              {assessments.length > 0 && (
+                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {assessments.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -106,26 +118,60 @@ export default function Home() {
         {/* Assessment Form */}
         <main className="flex-1 p-4 lg:p-8">
           <div className="max-w-2xl mx-auto">
-            {/* Info Card */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="text-sm text-blue-800 font-medium">About NIHSS</p>
-                  <p className="text-sm text-blue-600 mt-1">
-                    The NIH Stroke Scale measures stroke severity. Tap each item to expand and select the appropriate score. 
-                    All 15 items must be assessed for a complete evaluation.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <AssessmentForm onSave={handleSave} />
           </div>
         </main>
       </div>
+
+      {/* Info Modal */}
+      {showInfo && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowInfo(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">About NIHSS</h2>
+              <button 
+                onClick={() => setShowInfo(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4 text-gray-600">
+              <p>
+                The <strong className="text-gray-900">NIH Stroke Scale (NIHSS)</strong> is a standardized tool used to measure stroke severity 
+                and determine appropriate treatment.
+              </p>
+              <div className="bg-blue-50 rounded-xl p-4">
+                <p className="font-medium text-blue-900 mb-2">Scoring Guide:</p>
+                <ul className="space-y-1 text-sm text-blue-800">
+                  <li>• <strong>0</strong> — No stroke symptoms</li>
+                  <li>• <strong>1-4</strong> — Mild stroke</li>
+                  <li>• <strong>5-15</strong> — Moderate stroke</li>
+                  <li>• <strong>16-20</strong> — Severe stroke</li>
+                  <li>• <strong>21-42</strong> — Very severe stroke</li>
+                </ul>
+              </div>
+              <p className="text-sm">
+                All 15 items must be assessed for a complete evaluation. Higher scores indicate more severe impairment.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-auto">
