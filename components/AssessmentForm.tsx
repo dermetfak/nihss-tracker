@@ -69,7 +69,6 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
             <span className="text-5xl font-bold">{currentScore}</span>
             <span className="text-blue-200">/ 42</span>
           </div>
-          <p className="text-xl font-semibold mt-1">{getSeverityLabel(getSeverity(currentScore))}</p>
           <p className="text-blue-100 text-sm mt-2">{answeredCount} of {NIHSS_ITEMS.length} items scored</p>
         </div>
 
@@ -148,18 +147,10 @@ export default function AssessmentForm({ onSave }: AssessmentFormProps) {
     <div className="space-y-6">
       {/* Score Summary */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Total Score</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-5xl font-bold">{currentScore}</span>
-              <span className="text-blue-200">/ 42</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Severity</p>
-            <p className="text-2xl font-semibold mt-1">{getSeverityLabel(getSeverity(currentScore))}</p>
-          </div>
+        <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Total Score</p>
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="text-5xl font-bold">{currentScore}</span>
+          <span className="text-blue-200">/ 42</span>
         </div>
         <div className="mt-4 pt-4 border-t border-blue-500/30">
           <div className="flex items-center justify-between text-sm">
