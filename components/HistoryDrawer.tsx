@@ -144,9 +144,7 @@ export default function HistoryDrawer({
                   <p className="text-blue-100 text-sm font-medium uppercase tracking-wide">Assessment Detail</p>
                   <div className="flex items-baseline gap-3 mt-2">
                     <span className="text-4xl font-bold">{selectedAssessment.totalScore}</span>
-                    <span className="text-blue-200">/ 42</span>
                   </div>
-                  <p className="text-xl font-semibold mt-1">{getSeverityLabel(selectedAssessment.severity)}</p>
                 </div>
                 <button 
                   onClick={() => setSelectedAssessment(null)}
